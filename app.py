@@ -50,7 +50,8 @@ def del_recipe_by_id(recipe_id):
     try:
         del recipes[recipe_id]
         return {"message":"Recipe deleted."}
-
+    except KeyError:
+        abort(404, message="Recipe not found.")
 
 @app.get("/ingredient")
 def get_ingredients():
@@ -70,7 +71,7 @@ def add_ingredient():
     ingredients[ingredient_id] = new_ingredient
     return new_ingredient, 201
 
-@app.delete("/ingredient/<string:abche >")
+@app.delete("/ingredient/<string:ingredient_id>")
 def del_ingredient_by_id(ingredient_id):
     try:
         del ingredients[ingredient_id]
