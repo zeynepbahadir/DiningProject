@@ -10,6 +10,7 @@ blp = Blueprint("recipes", __name__, description="Operations on recipes")
 
 @blp.route("/recipe/<string:recipe_id>")
 class Recipe(MethodView):
+    @blp.response(200, RecipeSchema)
     def get(self, recipe_id):
         try:
             return recipes[recipe_id]
@@ -17,6 +18,7 @@ class Recipe(MethodView):
             abort(404, message="Recipe not found.")
     
     @blp.arguments(RecipeUpdateSchema)
+    @blp.response(200, RecipeSchema)
     def put(self, request_recipe, recipe_id):
         try:
             recipe = recipes[recipe_id]
@@ -35,10 +37,12 @@ class Recipe(MethodView):
 
 @blp.route("/recipe")
 class RecipeList(MethodView):
+    @blp.response(200, RecipeSchema(many=True))
     def get(self):
-        return {"recipes": list(recipes.values())}
+        return recipes.values()
 
     @blp.arguments(RecipeSchema)
+    @blp.response(201, RecipeSchema)
     def post(self, request_recipe):
         for recipe in recipes.values():
             if request_recipe["name"] == recipe["name"]:
@@ -46,7 +50,7 @@ class RecipeList(MethodView):
 
         recipe_id = uuid.uuid4().hex
         new_recipe = {**request_recipe, "id":recipe_id}
-    
         recipes[recipe_id] = new_recipe
-        return new_recipe, 201
+
+        return new_recipe
 

@@ -11,4 +11,5 @@ class RecipeSchema(Schema):
     ingredients = fields.Str(required=True)
 
 class RecipeUpdateSchema(Schema):
+    name = fields.Str()
     ingredients = fields.Str()
