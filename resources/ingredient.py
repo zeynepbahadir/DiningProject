@@ -4,6 +4,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from db import ingredients
 
+
 blp = Blueprint("ingredients", __name__, description="Operations on ingredients")
 
 @blp.route("/ingredient")
@@ -18,6 +19,7 @@ class IngredientList(MethodView):
         for ingredient in ingredients:
             if request_ingredient["name"] == ingredient["name"]:
                 abort(400, message="Bad request. Ingredient already exists.")
+        
         ingredient_id = uuid.uuid4().hex
         new_ingredient = {**request_ingredient, "id":ingredient_id}
         
