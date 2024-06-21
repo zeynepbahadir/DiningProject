@@ -3,6 +3,8 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from db import ingredients
+from schemas import IngredientSchema
+
 
 blp = Blueprint("ingredients", __name__, description="Operations on ingredients")
 
@@ -11,10 +13,8 @@ class IngredientList(MethodView):
     def get(self):
         return {"ingredients": list(ingredients.values())}
     
-    def post(self):
-        request_ingredient = request.get_json()
-        if "name" not in request_ingredient:
-            abort(400, message="Bad request. Ensure 'name' is included in JSON payload.")
+    @blp.arguments(IngredientSchema)
+    def post(self, request_ingredient):
         for ingredient in ingredients:
             if request_ingredient["name"] == ingredient["name"]:
                 abort(400, message="Bad request. Ingredient already exists.")

@@ -8,7 +8,7 @@ class IngredientSchema(Schema):
 class RecipeSchema(Schema):
     id = fields.Str(dump_only=True)
     name = fields.Str(required=True)
-    ingredients = fields.List(required=True)
+    ingredients = fields.Str(required=True)
 
 class RecipeUpdateSchema(Schema):
-    ingredients = fields.List(required=True)
+    ingredients = fields.Str()

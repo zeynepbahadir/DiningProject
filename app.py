@@ -4,6 +4,7 @@ from flask_smorest import Api
 from resources.recipe import blp as RecipeBlueprint
 from resources.ingredient import blp as IngredientBlueprint
 
+from schemas import RecipeSchema, IngredientSchema
 
 app = Flask(__name__)
 
