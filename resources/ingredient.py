@@ -5,6 +5,11 @@ from flask_smorest import Blueprint, abort
 from db import ingredients
 from schemas import IngredientSchema
 
+from sqlalchemy.exc import SQLAlchemyError
+
+from db import db
+from models import IngredientModel
+
 
 
 blp = Blueprint("ingredients", __name__, description="Operations on ingredients")
@@ -18,15 +23,15 @@ class IngredientList(MethodView):
     @blp.arguments(IngredientSchema)
     @blp.response(201, IngredientSchema)
     def post(self, request_ingredient):
-        for ingredient in ingredients:
-            if request_ingredient["name"] == ingredient["name"]:
-                abort(400, message="Bad request. Ingredient already exists.")
+        ingredient = IngredientModel(**request_ingredient)
         
-        ingredient_id = uuid.uuid4().hex
-        new_ingredient = {**request_ingredient, "id":ingredient_id}
-        ingredients[ingredient_id] = new_ingredient
+        try:
+            db.session.add(ingredient)
+            db.session.commit()
+        except SQLAlchemyError:
+            abort(500, message="An error occured while inserting the ingredient.")
         
-        return new_ingredient
+        return ingredient
 
 @blp.route("/ingredient/<string:ingredient_id>")
 class Ingredient(MethodView):

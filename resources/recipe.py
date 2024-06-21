@@ -5,6 +5,11 @@ from flask_smorest import Blueprint, abort
 from db import recipes
 from schemas import RecipeSchema, RecipeUpdateSchema
 
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
+from db import db
+from models import RecipeModel
+
 blp = Blueprint("recipes", __name__, description="Operations on recipes")
 
 
@@ -44,6 +49,16 @@ class RecipeList(MethodView):
     @blp.arguments(RecipeSchema)
     @blp.response(201, RecipeSchema)
     def post(self, request_recipe):
+        recipe = RecipeModel(**request_recipe)
+        try:
+            db.session.add(recipe)
+            db.session.commit()
+        except IntegrityError:
+            abort(400, message="A Recipe with that name already exists.")
+        except SQLAlchemyError:
+            abort(500, message="An error occured while adding the recipe.")
+        
+        """
         for recipe in recipes.values():
             if request_recipe["name"] == recipe["name"]:
                 abort(400, message="Recipe already exists.")
@@ -53,4 +68,4 @@ class RecipeList(MethodView):
         recipes[recipe_id] = new_recipe
 
         return new_recipe
-
+        """
