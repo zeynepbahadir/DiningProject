@@ -2,8 +2,8 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from db import ingredients
-from schemas import IngredientSchema
+
+from schemas import IngredientSchema, PlainIngredientSchema
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -16,9 +16,9 @@ blp = Blueprint("ingredients", __name__, description="Operations on ingredients"
 
 @blp.route("/ingredient")
 class IngredientList(MethodView):
-    @blp.response(200, IngredientSchema(many=True))
+    @blp.response(200, PlainIngredientSchema(many=True))
     def get(self):
-        return ingredients.values()
+        return IngredientModel.query.all()
     
     @blp.arguments(IngredientSchema)
     @blp.response(201, IngredientSchema)
@@ -31,13 +31,12 @@ class IngredientList(MethodView):
         except SQLAlchemyError:
             abort(500, message="An error occured while inserting the ingredient.")
         
-        return ingredient
+        #return ingredient
 
 @blp.route("/ingredient/<string:ingredient_id>")
 class Ingredient(MethodView):
     def delete(self, ingredient_id):
-        try:
-            del ingredients[ingredient_id]
-            return {"message":"Ingredient deleted."}
-        except KeyError:
-            abort(404, message="Ingredient not found.")
+        ingredient = IngredientModel.query.get_or_404(ingredient_id)
+        db.session.delete(ingredient)
+        db.session.commit()
+        return {"message":"Ingredient deleted."}
