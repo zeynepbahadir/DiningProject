@@ -1,7 +1,3 @@
-recipes = {
+from flask_sqlalchemy import SQLAlchemy
 
-}
-
-ingredients = {
-
-}
+db = SQLAlchemy()
