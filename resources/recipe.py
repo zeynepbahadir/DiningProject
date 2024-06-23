@@ -3,7 +3,7 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
-from schemas import RecipeSchema, RecipeUpdateSchema
+from schemas import RecipeSchema
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
@@ -19,22 +19,6 @@ class Recipe(MethodView):
     def get(self, recipe_id):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         return recipe
-    
-    """
-    @blp.arguments(RecipeUpdateSchema)
-    @blp.response(200, RecipeSchema)
-    def put(self, request_recipe, recipe_id):
-        recipe = RecipeModel.query.get(recipe_id)
-        if recipe:
-            recipe.name = request_recipe["name"]
-            recipe.ingredients = request_recipe["ingredients"]
-        else:
-            recipe = RecipeModel(id=recipe_id, **request_recipe)
-        
-        db.session.add(recipe)
-        db.session.commit()
-        return recipe
-    """
     
     def delete(self, recipe_id):
         recipe = RecipeModel.query.get_or_404(recipe_id)
