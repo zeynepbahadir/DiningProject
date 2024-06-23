@@ -9,18 +9,19 @@ class PlainIngredientSchema(Schema):
 class PlainRecipeSchema(Schema):
     id = fields.Str(dump_only=True)
     name = fields.Str(required=True)
-    ingredients = fields.Str(required=True)
 
 
 class IngredientSchema(PlainIngredientSchema):
-    recipe_id = fields.Int(required=True, load_only=True)
-    recipe = fields.Nested(PlainRecipeSchema(), dump_only=True)
+    #recipe_id = fields.Int(required=True, load_only=True)
+    #recipe = fields.Nested(PlainRecipeSchema(), dump_only=True)
+    recipe = fields.List(fields.Nested(PlainRecipeSchema()), dump_only=True)
 
 
 class RecipeSchema(PlainRecipeSchema):
-    ingredients = fields.List(fields.Nested(PlainIngredientSchema()), dump_only=True)
+    ingredient = fields.List(fields.Nested(PlainIngredientSchema()), dump_only=True)
 
 
-class RecipeUpdateSchema(Schema):
-    name = fields.Str()
-    ingredients = fields.Str()
+class RecipeAndIngredientSchema(Schema):
+    message = fields.Str()
+    ingredient = fields.Nested(IngredientSchema)
+    recipe = fields.Nested(RecipeSchema)

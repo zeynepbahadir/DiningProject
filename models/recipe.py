@@ -8,10 +8,15 @@ class RecipeModel(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     #ingredients = db.Column(db.String(80), nullable=True)
 
+    #many-to-many relationship with ingredients
+    ingredient = db.relationship("IngredientModel", back_populates="recipe", secondary="recipe_ingredients")
+
     #one-to-many relationship with ingredients
+    """
     ingredients = db.relationship("IngredientModel", back_populates="recipe", lazy="dynamic") #lazy dynamic means 
                                                                                             #it will not get ingredients 
                                                                                         #of recipe until they called
+    """
     ####################################################
     #calling all
     #recipe.ingredients.all()
