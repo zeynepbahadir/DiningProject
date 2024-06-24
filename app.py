@@ -5,6 +5,7 @@ from flask_smorest import Api
 
 from resources.recipe import blp as RecipeBlueprint
 from resources.ingredient import blp as IngredientBlueprint
+from resources.user import blp as UserBlueprint
 
 from schemas import RecipeSchema, IngredientSchema
 
@@ -32,5 +33,6 @@ def create_app(db_url=None):
 
     api.register_blueprint(RecipeBlueprint)
     api.register_blueprint(IngredientBlueprint)
+    api.register_blueprint(UserBlueprint)
 
     return app
