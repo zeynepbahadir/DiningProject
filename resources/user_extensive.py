@@ -2,7 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from db import db
-from models import UserModel, IngredientModel
+from models import UserModel, IngredientModel, RecipeModel
 from schemas import UserAndIngredientSchema, RecipeAndIngredientSchema, UserSchema, IngredientSchema, RecipeSchema
 
 from sqlalchemy import text
@@ -52,28 +52,27 @@ class ListWhatIngredientUserHas(MethodView):
     
 @blp.route("/user/<int:user_id>/recipe")
 class ListWhichRecipesPasses(MethodView):
-    #@blp.response(200, RecipeSchema)
     def get(self, user_id):
         sql = text('select ingredients_id from user_ingredients where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
         ingredient_ids = [row[0] for row in result]
-        #print("result : ", result)
 
         sql1 = text('SELECT recipes_id FROM recipe_ingredients WHERE ingredients_id IN {}'.format(tuple(ingredient_ids)))
         result1 = db.session.execute(sql1)
         recipe_ids = [row[0] for row in result1]
         r = set(recipe_ids)
         ri = list(r)
-        return ri
+        return {"message": "Recipes which has users ingredients", "recipes": ri}
 
+@blp.route("/user/<int:user_id>/recipe/<int:recipe_id>")
+class UsersRecipe(MethodView):
+    def get(self, user_id, recipe_id):
+        sql = text('select ingredients_id from user_ingredients where users_id = :val')
+        result = db.session.execute(sql, {"val":user_id})
+        user_ingredients_ids = [row[0] for row in result]
 
-    #if UserModel.query.filter(UserModel.username == request_user["username"]).first():
-    
+        sql1 = text('select ingredients_id from recipe_ingredients where recipes_id = :val')
+        result1 = db.session.execute(sql1, {"val":recipe_id})
+        recipe_ingredients_ids = [row[0] for row in result1]
 
-    #return IngredientModel.query.all()
-
-
-    #calling all
-    #recipe.ingredients.all()
-    #calling by name
-    #recipe.ingredients.filter_by(name=="onion").first()
+        return {"missed ingredients": list(set(recipe_ingredients_ids).difference(user_ingredients_ids))}
