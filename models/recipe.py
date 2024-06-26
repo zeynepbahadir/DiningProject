@@ -11,6 +11,10 @@ class RecipeModel(db.Model):
     #many-to-many relationship with ingredients
     ingredient = db.relationship("IngredientModel", back_populates="recipe", secondary="recipe_ingredients")
 
+    #many-to-many relationship with users
+    user = db.relationship("UserModel", back_populates="recipe", secondary="user_recipes")
+
+
     #one-to-many relationship with ingredients
     """
     ingredients = db.relationship("IngredientModel", back_populates="recipe", lazy="dynamic") #lazy dynamic means 

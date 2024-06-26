@@ -8,6 +8,11 @@ class UserModel(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
 
+    #many-to-many relationship with recipe
+    recipe = db.relationship("RecipeModel", back_populates="user", secondary="user_recipes")
+    
+    #many-to-many relationship with ingredients
+    ingredient = db.relationship("IngredientModel", back_populates="user", secondary="user_ingredients", lazy="dynamic")
+
     #to add
-    #owned = 
-    #mealplan = 
+    #owned =
