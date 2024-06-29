@@ -10,6 +10,9 @@ class IngredientModel(db.Model):
     #many-to-many relationship with recipe
     recipe = db.relationship("RecipeModel", back_populates="ingredient", secondary="recipe_ingredients")
 
+
+    #many-to-many relationship with users
+    user = db.relationship("UserModel", back_populates="ingredient", secondary="user_ingredients")
     #one-to-many relationship with recipe
     """
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"), unique=False, nullable=False) #foreign key means id comes from a foreign table recipe

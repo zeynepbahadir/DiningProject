@@ -4,14 +4,14 @@ from passlib.hash import pbkdf2_sha256
 
 from db import db
 from models import UserModel
-from schemas import UserSchema
+from schemas import UserSchema, PlainUserSchema
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
 
 @blp.route("/user")
 class UserList(MethodView):
-    @blp.response(200, UserSchema(many=True))
+    @blp.response(200, PlainUserSchema(many=True))
     def get(self):
         return UserModel.query.all()
     
