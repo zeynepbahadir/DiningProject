@@ -13,7 +13,7 @@ blp = Blueprint("User_extensive", "user_extensive", description="Extended operat
 
 @blp.route("/user/<int:user_id>/ingredient/<int:ingredient_id>")
 class PostAndDeleteUserIngredients(MethodView):
-    @blp.arguments(UserAndIngredientSchema)
+    #@blp.arguments(UserAndIngredientSchema)
     @blp.response(201, UserAndIngredientSchema)
     def post(self, user_id, ingredient_id):
         user = UserModel.query.get_or_404(user_id)
@@ -80,7 +80,7 @@ class UsersRecipe(MethodView):
 
         return {"missed ingredients": list(set(recipe_ingredients_ids).difference(user_ingredients_ids))}
     
-    @blp.arguments(UserAndRecipeSchema)
+    #@blp.arguments(UserAndRecipeSchema)
     @blp.response(201, UserAndRecipeSchema)
     def post(self, user_id, recipe_id):
         user = UserModel.query.get_or_404(user_id)
@@ -102,10 +102,11 @@ class UsersRecipe(MethodView):
     def delete(self, user_id, recipe_id):
         user = UserModel.query.get_or_404(user_id)
         recipe = RecipeModel.query.get_or_404(recipe_id)
-        recipe.user.append(user)
+        
+        user.recipe.remove(recipe)
 
         try:
-            db.session.remove(recipe)
+            db.session.add(user)
             db.session.commit()
         except IntegrityError:
             abort(400, message="error occured.")
@@ -129,10 +130,11 @@ class UsersMealplanMissedIngredients(MethodView):
         sql = text('select recipes_id from user_recipes where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
         recipes_ids = [row[0] for row in result]
-        r = set(recipes_ids)
-        ri = list(r)
+        #r = set(recipes_ids)
+        #ri = list(r)
 
-        sql1 = text('SELECT ingredients_id FROM recipe_ingredients WHERE recipes_id IN {}'.format(tuple(ri)))
-        result1 = db.session.execute(sql1)
+        #sql1 = text('SELECT ingredients_id FROM recipe_ingredients WHERE recipes_id IN {}'.format(tuple(recipes_ids)))
+        sql1 = text('SELECT ingredients_id FROM recipe_ingredients WHERE recipes_id IN :val')
+        result1 = db.session.execute(sql1, {"val":tuple(recipes_ids)})
         ingredients_ids = [row[0] for row in result1]
         return {"message": "Ingredients which users recipes has:", "recipes": ingredients_ids}
