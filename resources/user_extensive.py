@@ -1,3 +1,5 @@
+import regex as re
+
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
@@ -19,7 +21,9 @@ class PostAndDeleteUserIngredients(MethodView):
         user = UserModel.query.get_or_404(user_id)
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
 
-        if not ingredient.user:
+        ilist = [int(re.sub("[^\d\.]", "", str(x))) for x in user.ingredient]
+
+        if ingredient_id not in ilist:
             user.ingredient.append(ingredient)
             try:
                 db.session.add(user)
@@ -27,15 +31,17 @@ class PostAndDeleteUserIngredients(MethodView):
             except SQLAlchemyError:
                 abort(500, message="An error occured while adding ingredient to user.")
 
-            return {"message":"Ingredient added to user.", "Ingredient":ingredient, "user":user}
+            return {"message":"Ingredient added to user."}
         abort(404, message="User has these ingredient already.")
     
     @blp.response(200, UserAndIngredientSchema)
     def delete(self, user_id, ingredient_id):
         user = UserModel.query.get_or_404(user_id)
-        ingredient = IngredientModel.query.get(ingredient_id)
+        ingredient = IngredientModel.query.get_or_404(ingredient_id)
 
-        if ingredient.user:
+        ilist = [int(re.sub("[^\d\.]", "", str(x))) for x in user.ingredient]
+
+        if ingredient_id in ilist:
             user.ingredient.remove(ingredient)
             try:
                 db.session.add(user)
@@ -43,7 +49,7 @@ class PostAndDeleteUserIngredients(MethodView):
             except SQLAlchemyError:
                 abort(500, message="An error occured while removing ingredient from user.")
 
-            return {"message": "Ingredient removed from user.", "Ingredient":ingredient, "user":user}
+            return {"message": "Ingredient removed from user."}
         abort(404, message="User doesnt have these ingredient.")
     
 @blp.route("/user/<int:user_id>/ingredient")
@@ -57,6 +63,7 @@ class ListWhatIngredientUserHas(MethodView):
 @blp.route("/user/<int:user_id>/recipe")
 class ListWhichRecipesPasses(MethodView):
     def get(self, user_id):
+        user = UserModel.query.get_or_404(user_id)
         sql = text('select ingredients_id from user_ingredients where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
         ingredient_ids = [row[0] for row in result]
@@ -69,11 +76,13 @@ class ListWhichRecipesPasses(MethodView):
         recipe_ids = [row[0] for row in result1]
         r = set(recipe_ids)
         ri = list(r)
-        return {"message": "Recipes which has users ingredients", "recipes": ri, "ingredeint":ingredient_ids}
+        return {"message": "Recipes which has users ingredients", "recipes": ri, "ingredients":ingredient_ids}
 
 @blp.route("/user/<int:user_id>/recipe/<int:recipe_id>")
 class UsersRecipe(MethodView):
     def get(self, user_id, recipe_id):
+        user = UserModel.query.get_or_404(user_id)
+        recipe = RecipeModel.query.get_or_404(recipe_id)
         sql = text('select ingredients_id from user_ingredients where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
         user_ingredients_ids = [row[0] for row in result]
@@ -90,8 +99,10 @@ class UsersRecipe(MethodView):
         user = UserModel.query.get_or_404(user_id)
         recipe = RecipeModel.query.get_or_404(recipe_id)
         
+        relist = [int(re.sub("[^\d\.]", "", str(x))) for x in user.recipe]
+
         #user.recipe is a list of RecipeModel 1, RecipeModel 2...
-        if str(recipe_id) not in str(user.recipe):
+        if recipe_id not in relist:
             recipe.user.append(user)
             try:
                 db.session.add(recipe)
@@ -107,8 +118,10 @@ class UsersRecipe(MethodView):
         user = UserModel.query.get_or_404(user_id)
         recipe = RecipeModel.query.get_or_404(recipe_id)
         
+        relist = [int(re.sub("[^\d\.]", "", str(x))) for x in user.recipe]
+
         #user.recipe is a list of RecipeModel 1, RecipeModel 2...
-        if str(recipe_id) in str(user.recipe):
+        if recipe_id in relist:
             user.recipe.remove(recipe)
             try:
                 db.session.add(user)
@@ -122,6 +135,7 @@ class UsersRecipe(MethodView):
 @blp.route("/user/<int:user_id>/mealplan")
 class UsersMealplan(MethodView):
     def get(self, user_id):
+        user = UserModel.query.get_or_404(user_id)
         sql = text('select recipes_id from user_recipes where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
         recipes_id = [row[0] for row in result]
@@ -131,6 +145,7 @@ class UsersMealplan(MethodView):
 @blp.route("/user/<int:user_id>/mealplan/ingredient")
 class UsersMealplanMissedIngredients(MethodView):
     def get(self, user_id):
+        user = UserModel.query.get_or_404(user_id)
         #get what user has
         sql = text('SELECT ingredients_id from user_ingredients where users_id = :val')
         result = db.session.execute(sql, {"val":user_id})
