@@ -13,7 +13,7 @@ from models import RecipeModel
 blp = Blueprint("recipes", __name__, description="Operations on recipes")
 
 
-@blp.route("/recipe/<string:recipe_id>")
+@blp.route("/recipe/<int:recipe_id>")
 class Recipe(MethodView):
     @blp.response(200, RecipeSchema)
     def get(self, recipe_id):

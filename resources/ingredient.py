@@ -1,10 +1,11 @@
 import uuid
+import regex as re
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from schemas import IngredientSchema, PlainIngredientSchema,RecipeAndIngredientSchema
-
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from db import db
@@ -32,7 +33,7 @@ class IngredientList(MethodView):
             abort(500, message="An error occured while inserting the ingredient.")
         return ingredient
 
-@blp.route("/ingredient/<string:ingredient_id>")
+@blp.route("/ingredient/<int:ingredient_id>")
 class Ingredient(MethodView):
     @blp.response(202, description="Deletes an ingredient if no recipe is assigned to it.", example={"message":"Tag deleted."})
     @blp.alt_response(404, description="Ingredient not found.")
@@ -47,33 +48,40 @@ class Ingredient(MethodView):
         abort(400, message="Could not delete ingredient. Make sure ingredient is not associated with a recipe, and try again.")
 
 #according to many-to-many relationships linking and unlinking ingredients to recipes
-@blp.route("/recipe/<string:recipe_id>/ingredient/<string:ingredient_id>")
+@blp.route("/recipe/<int:recipe_id>/ingredient/<int:ingredient_id>")
 class LinkIngredientToRecipe(MethodView):
     @blp.response(201, RecipeAndIngredientSchema)
     def post(self, recipe_id, ingredient_id):
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
         recipe = RecipeModel.query.get_or_404(recipe_id)
-        recipe.ingredient.append(ingredient)
+        
+        ingrlist = [int(re.sub("[^\d\.]", "", str(x))) for x in recipe.ingredient]
 
-        try:
-            db.session.add(recipe)
-            db.session.commit()
-        except SQLAlchemyError:
-            abort(500, message="An error occured while linking ingredient.")
+        if ingredient_id not in ingrlist:
+            recipe.ingredient.append(ingredient)
+            try:
+                db.session.add(recipe)
+                db.session.commit()
+            except SQLAlchemyError:
+                abort(500, message="An error occured while linking ingredient.")
 
-        return {"message":"Ingredient added to recipe.", "Ingredient":ingredient, "recipe":recipe}
+            return {"message":"Ingredient added to recipe.", "Ingredient":ingredient, "recipe":recipe}
+        abort(400, message="Recipe has these ingredient already.")
 
     @blp.response(200, RecipeAndIngredientSchema)
     def delete(self, recipe_id, ingredient_id):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
 
-        recipe.ingredient.remove(ingredient)
+        ingrlist = [int(re.sub("[^\d\.]", "", str(x))) for x in recipe.ingredient]
 
-        try:
-            db.session.add(recipe)
-            db.session.commit()
-        except SQLAlchemyError:
-            abort(500, message="An error occured while deleting ingredient.")
+        if ingredient_id in ingrlist:
+            recipe.ingredient.remove(ingredient)
+            try:
+                db.session.add(recipe)
+                db.session.commit()
+            except SQLAlchemyError:
+                abort(500, message="An error occured while deleting ingredient.")
 
-        return {"message": "Ingredient removed Recipe.", "Ingredient":ingredient, "recipe":recipe}
+            return {"message": "Ingredient removed Recipe.", "Ingredient":ingredient, "recipe":recipe}
+        abort(400, message="Recipe doesnt have these ingredient.")
