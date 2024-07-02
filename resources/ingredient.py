@@ -3,6 +3,7 @@ import regex as re
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from schemas import IngredientSchema, PlainIngredientSchema,RecipeAndIngredientSchema
 from sqlalchemy import text
@@ -20,6 +21,7 @@ class IngredientList(MethodView):
     def get(self):
         return IngredientModel.query.all()
     
+    @jwt_required()
     @blp.arguments(IngredientSchema)
     @blp.response(201, IngredientSchema)
     def post(self, request_ingredient):
@@ -35,6 +37,7 @@ class IngredientList(MethodView):
 
 @blp.route("/ingredient/<int:ingredient_id>")
 class Ingredient(MethodView):
+    @jwt_required()
     @blp.response(202, description="Deletes an ingredient if no recipe is assigned to it.", example={"message":"Tag deleted."})
     @blp.alt_response(404, description="Ingredient not found.")
     @blp.alt_response(400, description="Returned if the ingredient is assigned to one or more recipes. In this case, the ingredient is not deleted.")
@@ -50,6 +53,7 @@ class Ingredient(MethodView):
 #according to many-to-many relationships linking and unlinking ingredients to recipes
 @blp.route("/recipe/<int:recipe_id>/ingredient/<int:ingredient_id>")
 class LinkIngredientToRecipe(MethodView):
+    @jwt_required()
     @blp.response(201, RecipeAndIngredientSchema)
     def post(self, recipe_id, ingredient_id):
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
@@ -68,6 +72,7 @@ class LinkIngredientToRecipe(MethodView):
             return {"message":"Ingredient added to recipe.", "Ingredient":ingredient, "recipe":recipe}
         abort(400, message="Recipe has these ingredient already.")
 
+    @jwt_required()
     @blp.response(200, RecipeAndIngredientSchema)
     def delete(self, recipe_id, ingredient_id):
         recipe = RecipeModel.query.get_or_404(recipe_id)

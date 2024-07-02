@@ -1,7 +1,10 @@
 import os
+import secrets
 
 from flask import Flask
 from flask_smorest import Api
+
+from flask_jwt_extended import JWTManager
 
 from resources.recipe import blp as RecipeBlueprint
 from resources.ingredient import blp as IngredientBlueprint
@@ -28,6 +31,9 @@ def create_app(db_url=None):
     db.init_app(app)
 
     api = Api(app)
+
+    app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
+    jwt = JWTManager(app)
 
     with app.app_context():
         db.create_all()

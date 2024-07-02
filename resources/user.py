@@ -1,6 +1,7 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
+from flask_jwt_extended import create_access_token
 
 from db import db
 from models import UserModel
@@ -29,6 +30,18 @@ class UserList(MethodView):
 
         return {"message": "User created successfully."}, 201
     
+@blp.route("/login")
+class UserLogin(MethodView):
+    @blp.arguments(UserSchema)
+    def post(self, request_user):
+        user = UserModel.query.filter(UserModel.username == request_user["username"]).first()
+
+        if user and pbkdf2_sha256.verify(request_user["password"], user.password):
+            access_token = create_access_token(identity=user.id) #users id is passed to jwt too (among other infos)
+            return {"access_token": access_token}, 200
+
+        abort(401, message="Invalid credentials.")
+
 @blp.route("/user/<int:user_id>")
 class User(MethodView):
     @blp.response(200, UserSchema)

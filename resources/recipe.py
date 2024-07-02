@@ -2,6 +2,7 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from schemas import RecipeSchema
 
@@ -20,6 +21,7 @@ class Recipe(MethodView):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         return recipe
     
+    @jwt_required()
     def delete(self, recipe_id):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         db.session.delete(recipe)
@@ -32,6 +34,7 @@ class RecipeList(MethodView):
     def get(self):
         return RecipeModel.query.all()
 
+    @jwt_required()
     @blp.arguments(RecipeSchema)
     @blp.response(201, RecipeSchema)
     def post(self, request_recipe):

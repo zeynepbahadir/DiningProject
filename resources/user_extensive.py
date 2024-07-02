@@ -2,6 +2,7 @@ import regex as re
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from db import db
 from models import UserModel, IngredientModel, RecipeModel
@@ -15,6 +16,7 @@ blp = Blueprint("User_extensive", "user_extensive", description="Extended operat
 
 @blp.route("/user/<int:user_id>/ingredient/<int:ingredient_id>")
 class PostAndDeleteUserIngredients(MethodView):
+    @jwt_required()
     #@blp.arguments(UserAndIngredientSchema)
     @blp.response(201, UserAndIngredientSchema)
     def post(self, user_id, ingredient_id):
@@ -34,6 +36,7 @@ class PostAndDeleteUserIngredients(MethodView):
             return {"message":"Ingredient added to user."}
         abort(404, message="User has these ingredient already.")
     
+    @jwt_required()
     @blp.response(200, UserAndIngredientSchema)
     def delete(self, user_id, ingredient_id):
         user = UserModel.query.get_or_404(user_id)
@@ -93,6 +96,7 @@ class UsersRecipe(MethodView):
 
         return {"missed ingredients": list(set(recipe_ingredients_ids).difference(user_ingredients_ids))}
     
+    @jwt_required()
     #@blp.arguments(UserAndRecipeSchema)
     @blp.response(201, UserAndRecipeSchema)
     def post(self, user_id, recipe_id):
@@ -113,6 +117,7 @@ class UsersRecipe(MethodView):
             return {"message":"Recipe added to users meal plan."}#, "user":user, "recipe":recipe}
         abort(400, message="User has these recipe already.")
     
+    @jwt_required()
     @blp.response(201, UserAndRecipeSchema)
     def delete(self, user_id, recipe_id):
         user = UserModel.query.get_or_404(user_id)
