@@ -32,6 +32,13 @@ def create_app(db_url=None):
     app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
     jwt = JWTManager(app)
 
+    #in this scenario a user with an id number 1 is an admin
+    @jwt.additional_claims_loader
+    def add_claims_to_jwt(identity):
+        if identity == 1:
+            return {"is_admin": True}
+        return {"is_admin": False}
+
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
         return (jsonify({"message": "The token has expired.", "error": "token_expired"}), 401)

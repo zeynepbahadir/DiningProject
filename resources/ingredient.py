@@ -3,7 +3,7 @@ import regex as re
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 
 from schemas import IngredientSchema, PlainIngredientSchema,RecipeAndIngredientSchema
 from sqlalchemy import text
@@ -25,6 +25,10 @@ class IngredientList(MethodView):
     @blp.arguments(IngredientSchema)
     @blp.response(201, IngredientSchema)
     def post(self, request_ingredient):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+        
         ingredient = IngredientModel(**request_ingredient)
         try:
             db.session.add(ingredient)
@@ -42,6 +46,10 @@ class Ingredient(MethodView):
     @blp.alt_response(404, description="Ingredient not found.")
     @blp.alt_response(400, description="Returned if the ingredient is assigned to one or more recipes. In this case, the ingredient is not deleted.")
     def delete(self, ingredient_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
 
         if not ingredient.recipe:
@@ -56,6 +64,10 @@ class LinkIngredientToRecipe(MethodView):
     @jwt_required()
     @blp.response(201, RecipeAndIngredientSchema)
     def post(self, recipe_id, ingredient_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
         recipe = RecipeModel.query.get_or_404(recipe_id)
         
@@ -75,6 +87,10 @@ class LinkIngredientToRecipe(MethodView):
     @jwt_required()
     @blp.response(200, RecipeAndIngredientSchema)
     def delete(self, recipe_id, ingredient_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+
         recipe = RecipeModel.query.get_or_404(recipe_id)
         ingredient = IngredientModel.query.get_or_404(ingredient_id)
 
