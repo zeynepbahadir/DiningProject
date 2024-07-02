@@ -21,7 +21,7 @@ class Recipe(MethodView):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         return recipe
     
-    @jwt_required()
+    @jwt_required(fresh=True)
     def delete(self, recipe_id):
         jwt = get_jwt()
         if not jwt.get("is_admin"):

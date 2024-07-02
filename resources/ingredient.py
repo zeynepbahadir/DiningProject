@@ -41,7 +41,7 @@ class IngredientList(MethodView):
 
 @blp.route("/ingredient/<int:ingredient_id>")
 class Ingredient(MethodView):
-    @jwt_required()
+    @jwt_required(fresh=True)
     @blp.response(202, description="Deletes an ingredient if no recipe is assigned to it.", example={"message":"Tag deleted."})
     @blp.alt_response(404, description="Ingredient not found.")
     @blp.alt_response(400, description="Returned if the ingredient is assigned to one or more recipes. In this case, the ingredient is not deleted.")
