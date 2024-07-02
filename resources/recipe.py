@@ -2,6 +2,7 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required, get_jwt
 
 from schemas import RecipeSchema
 
@@ -20,7 +21,12 @@ class Recipe(MethodView):
         recipe = RecipeModel.query.get_or_404(recipe_id)
         return recipe
     
+    @jwt_required(fresh=True)
     def delete(self, recipe_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+        
         recipe = RecipeModel.query.get_or_404(recipe_id)
         db.session.delete(recipe)
         db.session.commit()
@@ -32,9 +38,14 @@ class RecipeList(MethodView):
     def get(self):
         return RecipeModel.query.all()
 
+    @jwt_required()
     @blp.arguments(RecipeSchema)
     @blp.response(201, RecipeSchema)
     def post(self, request_recipe):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required.")
+
         recipe = RecipeModel(**request_recipe)
         try:
             db.session.add(recipe)
