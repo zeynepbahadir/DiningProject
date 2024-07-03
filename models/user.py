@@ -13,6 +13,6 @@ class UserModel(db.Model):
     
     #many-to-many relationship with ingredients
     ingredient = db.relationship("IngredientModel", back_populates="user", secondary="user_ingredients", lazy="dynamic")
-
+    
     #to add
     #owned =
