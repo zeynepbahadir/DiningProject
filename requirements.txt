@@ -7,3 +7,4 @@ flask-sqlalchemy
 passlib
 regex
 flask-jwt-extended
+flask-migrate
