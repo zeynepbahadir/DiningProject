@@ -8,3 +8,4 @@ passlib
 regex
 flask-jwt-extended
 flask-migrate
+pytest
